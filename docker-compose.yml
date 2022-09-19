@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: shop_container
+    image: shop:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/my_shop
+    command: python manage.py runserver 0.0.0.0:8000
+    networks:
+      - mysql-network
+
+networks:
+  mysql-network:
+    external:
+      name: mysql-network
