@@ -5,7 +5,6 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import User, AbstractUser, PermissionsMixin
 from django.core.files.storage import default_storage
 from django.db import models
-from django.utils import timezone
 from django_softdelete.models import SoftDeleteModel
 
 
@@ -17,18 +16,16 @@ def upload_to(instance, filename):
         "file": ['docx', 'pdf', 'xlsx'],
         "other": "",
     }
-
     for file in file_list:
         if extension in file_list[file]:
             # if default_storage.exists(f"upload/{file}/{now}/{instance.id}/{filename}"):
             #     default_storage.delete(f"upload/{file}/{now}/{instance.id}/{filename}")
-            return f'upload/{file}/{now}/{instance.id}/{filename}'
+            return f'upload/{file}/{now}/{filename}'
 
 
 class Product(SoftDeleteModel):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    media = models.FileField(upload_to=upload_to, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
@@ -43,24 +40,22 @@ class Product(SoftDeleteModel):
         verbose_name_plural = "Products"
 
 
-# class Media(SoftDeleteModel):
-#     # customer = models.ForeignKey("Customer", on_delete=models.CASCADE)
-#     object_model = models.CharField(max_length=255)
-#     object_id = models.PositiveBigIntegerField()
-#     file = models.FileField(upload_to=upload_to)
-#     extension = models.CharField(max_length=255)
-#     file_name = models.CharField(max_length=255)
-#     file_path = models.CharField(max_length=255)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-#     deleted_at = models.DateTimeField(null=True, blank=True)
-#     is_deleted = models.BooleanField(default=False)
-#
-#     def __str__(self):
-#         return self.object_model
-#
-#     class Meta:
-#         ordering = ['id']
+class ProductMedia(SoftDeleteModel):
+    product = models.ForeignKey("Product", related_name='product', on_delete=models.CASCADE)
+    file = models.FileField(upload_to=upload_to)
+    extension = models.CharField(max_length=255)
+    file_name = models.CharField(max_length=255)
+    file_path = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.file)
+
+    class Meta:
+        ordering = ['id']
 
 
 # class CustomerManager(BaseUserManager):

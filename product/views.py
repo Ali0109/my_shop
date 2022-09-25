@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -18,6 +20,36 @@ class ProductView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductDetailView(APIView):
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        if not pk:
+            return Response({"error": "Method PUT not allowed"})
+
+        try:
+            product = Product.objects.get(pk=pk)
+            product_serializer = ProductSerializer(product, many=False)
+            message = product_serializer.data
+        except:
+            return Response({"error": "Object does not exists"})
+
+        product_media = ProductMedia.objects.filter(product_id=product.id).all()
+        product_media_serializer = ProductMediaSerializer(product_media, many=True)
+        product_dict = json.loads(product_serializer.data)
+        product_media_dict = json.loads(product_media_serializer.data)
+        print(product_dict)
+        print(product_media_dict)
+
+        # try:
+        #     product_media = ProductMedia.objects.filter(product_id=product.id).all()
+        #     product_media_serializer = ProductMediaSerializer(product_media, many=True)
+        #     message.update(product_media_serializer.data)
+        # except:
+        #     pass
+
+        return Response(message)
 
     def put(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
@@ -47,7 +79,6 @@ class ProductView(APIView):
 
         instance.delete()
         return Response({"message": "Not found"})
-
 
 @api_view(["PUT"])
 def ProductRestoreAPIView(request, pk):
